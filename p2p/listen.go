@@ -67,8 +67,8 @@ func (s *Server) prepareHandle(peer *peer, prepare *prepareMsg) {
 	s.local.value = prepare.Value
 
 	var (
-		err error = nil
-		msg Msg   = nil
+		err error
+		msg Msg
 	)
 
 	defer func() {
@@ -100,9 +100,9 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 	}
 
 	var (
-		err error   = nil
-		msg Msg     = nil
-		req Request = nil
+		err error
+		msg Msg
+		req Request
 	)
 
 	defer func() {
