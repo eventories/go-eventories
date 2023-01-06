@@ -32,3 +32,10 @@ func (m *memoryDB) Put(key []byte, value []byte) error {
 	m.db[string(key)] = value
 	return nil
 }
+
+func (m *memoryDB) Delete(key []byte) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.db, string(key))
+	return nil
+}
