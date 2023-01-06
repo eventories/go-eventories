@@ -57,6 +57,10 @@ func (s *Server) LeaderIP() net.IP {
 	panic("not")
 }
 
+func (s *Server) Cluster() []string {
+	return s.election.Cluster()
+}
+
 func (s *Server) Role() election.Role {
 	return s.election.Role()
 }
