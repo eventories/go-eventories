@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"net"
 	"time"
+
+	"github.com/eventories/go-eventories/database"
 )
 
 const (
@@ -82,6 +84,14 @@ func newPhase(members []string, do func(Request, bool) error) (*phase, error) {
 	phase.msgCh = phase.readCohorts()
 
 	return phase, nil
+}
+
+func (p *phase) prepare(key []byte, value []byte) error {
+	panic("not")
+}
+
+func (p *phase) commit(db database.Database) error {
+	panic("not")
 }
 
 func (p *phase) readCohorts() chan Msg {
