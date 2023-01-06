@@ -112,7 +112,7 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 				s.doRequest(req, true)
 			}
 			if req == nil {
-				s.db.Put(s.local.key, nil)
+				s.db.Delete(s.local.key)
 			}
 		}
 	}()
@@ -148,6 +148,26 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 }
 
 func (s *Server) abortHandle(peer *peer, abort *abortMsg) {
+	if !bytes.Equal(s.local.id[:], abort.ID[:]) {
+		return
+	}
+
+	// Revert
+	if bytes.Contains(s.local.value, requestPrefix) {
+		// Request
+		req, err := decodeRequest(s.local.value)
+		if err != nil {
+			return
+		}
+		if err := s.doRequest(req, true); err != nil {
+			return
+		}
+	} else {
+		// Data
+		if err := s.db.Delete(s.local.key); err != nil {
+			return
+		}
+	}
 }
 
 // Request should also contain logic for revert that take that action.
