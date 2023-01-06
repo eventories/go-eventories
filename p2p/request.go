@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	addMemberType = byte(0) + iota
+	addMemberType = byte(1) + iota
 	delMemberType
 )
 
