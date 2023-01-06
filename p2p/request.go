@@ -18,16 +18,16 @@ var requestPrefix = []byte("r-e-q-")
 
 // m
 type (
-	addMember struct {
+	AddMemberReq struct {
 		Member string
 	}
 
-	delMember struct {
+	DelMemberReq struct {
 		Member string
 	}
 )
 
-func encodeRequest(req Request) ([]byte, error) {
+func EncodeRequest(req Request) ([]byte, error) {
 	b, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -52,13 +52,13 @@ func decodeRequest(b []byte) (Request, error) {
 	prefixIdx := 1 + len(requestPrefix)
 	switch b[0] {
 	case addMemberType:
-		var add addMember
+		var add AddMemberReq
 		if err = json.Unmarshal(b[prefixIdx:], &add); err == nil {
 			return &add, nil
 		}
 
 	case delMemberType:
-		var del delMember
+		var del DelMemberReq
 		if err = json.Unmarshal(b[prefixIdx:], &del); err == nil {
 			return &del, nil
 		}
@@ -70,5 +70,5 @@ func decodeRequest(b []byte) (Request, error) {
 	return nil, err
 }
 
-func (*addMember) Kind() byte { return addMemberType }
-func (*delMember) Kind() byte { return delMemberType }
+func (*AddMemberReq) Kind() byte { return addMemberType }
+func (*DelMemberReq) Kind() byte { return delMemberType }

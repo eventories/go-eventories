@@ -174,7 +174,7 @@ func (s *Server) abortHandle(peer *peer, abort *abortMsg) {
 func (s *Server) doRequest(req Request, abort bool) error {
 	switch req.Kind() {
 	case addMemberType:
-		add := req.(*addMember)
+		add := req.(*AddMemberReq)
 
 		if abort {
 			return s.election.DelMember(add.Member)
@@ -183,7 +183,7 @@ func (s *Server) doRequest(req Request, abort bool) error {
 		return s.election.AddMember(add.Member)
 
 	case delMemberType:
-		del := req.(*delMember)
+		del := req.(*DelMemberReq)
 
 		if abort {
 			return s.election.AddMember(del.Member)
