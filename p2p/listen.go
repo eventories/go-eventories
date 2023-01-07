@@ -21,7 +21,7 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		go s.handle(&peer{conn})
+		s.handle(&peer{conn})
 	}
 }
 
