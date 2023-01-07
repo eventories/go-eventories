@@ -10,6 +10,10 @@ const (
 	ackTimeout = time.Second
 )
 
+var (
+	errInvalidID = errors.New("invalid ID")
+)
+
 func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.listener.AcceptTCP()
@@ -90,6 +94,7 @@ func (s *Server) prepareHandle(peer *peer, prepare *prepareMsg) {
 	}
 
 	if prepare.ID != msg.(*ackMsg).ID {
+		err = errInvalidID
 		return
 	}
 }
@@ -143,6 +148,7 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 	}
 
 	if s.local.id != msg.(*ackMsg).ID {
+		err = errInvalidID
 		return
 	}
 }
