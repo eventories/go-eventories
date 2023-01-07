@@ -27,14 +27,14 @@ type phase struct {
 	do func(Request, bool) error
 }
 
-func newPhase(members []string, do func(Request, bool) error) (*phase, error) {
-	if members == nil {
+func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
+	if cohorts == nil {
 		return nil, errors.New("empty cluster")
 	}
-	peers := make([]*peer, 0, len(members))
+	peers := make([]*peer, 0, len(cohorts))
 
-	resCh := make(chan *peer, len(members))
-	for _, member := range members {
+	resCh := make(chan *peer, len(cohorts))
+	for _, cohort := range cohorts {
 		go func(rawaddr string) {
 			addr, err := net.ResolveTCPAddr("tcp", rawaddr)
 			if err != nil {
@@ -49,7 +49,7 @@ func newPhase(members []string, do func(Request, bool) error) (*phase, error) {
 			}
 
 			resCh <- &peer{conn}
-		}(member)
+		}(cohort)
 	}
 
 	var err error
