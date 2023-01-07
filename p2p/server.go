@@ -45,12 +45,8 @@ func (s *Server) Run() error {
 	return nil
 }
 
-func (s *Server) LocalAddr() net.Addr {
-	return s.listener.Addr()
-}
-
-func (s *Server) LocalPort() uint16 {
-	panic("not")
+func (s *Server) LocalAddr() *net.TCPAddr {
+	return s.listener.Addr().(*net.TCPAddr)
 }
 
 func (s *Server) LeaderIP() net.IP {
@@ -65,12 +61,13 @@ func (s *Server) Role() election.Role {
 	return s.election.Role()
 }
 
+// Non-cluster solo mode must be considered.
 func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 	if s.election.Role() != election.Leader {
 		return errors.New("not leader")
 	}
 
-	phase, err := newPhase([]string{"127.0.0.1:49912"}, s.doRequest) //s.election.Cluster())
+	phase, err := newPhase(s.election.Cluster(), s.doRequest)
 	if err != nil {
 		return err
 	}
