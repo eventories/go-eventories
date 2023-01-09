@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"bytes"
 	"errors"
 	"math/rand"
 	"net"
@@ -155,12 +154,9 @@ func (p *phase) commit(db database.Database) (err error) {
 		if err != nil {
 			p.broadcast(&abortMsg{p.id})
 
-			if bytes.Contains(p.value, requestPrefix) {
+			req, err := decodeRequest(p.value)
+			if err == nil {
 				// Request
-				req, err := decodeRequest(p.value)
-				if err != nil {
-					return
-				}
 				p.do(req, true)
 			} else {
 				// Data
@@ -174,16 +170,14 @@ func (p *phase) commit(db database.Database) (err error) {
 	}()
 
 	// Committing.
-	if bytes.Contains(p.value, requestPrefix) {
-		var req Request
-		req, err = decodeRequest(p.value)
-		if err != nil {
-			return
-		}
+	req, err := decodeRequest(p.value)
+	if err == nil {
+		// Request
 		if err = p.do(req, false); err != nil {
 			return
 		}
 	} else {
+		// Data
 		if err = db.Put(p.key, p.value); err != nil {
 			return
 		}

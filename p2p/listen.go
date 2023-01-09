@@ -122,12 +122,9 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 		}
 	}()
 
-	// Request
-	if bytes.Contains(s.local.value, requestPrefix) {
-		req, err = decodeRequest(s.local.value)
-		if err != nil {
-			return
-		}
+	req, err = decodeRequest(s.local.value)
+	if err == nil {
+		// Request
 		if err := s.doRequest(req, false); err != nil {
 			return
 		}
@@ -158,21 +155,14 @@ func (s *Server) abortHandle(peer *peer, abort *abortMsg) {
 		return
 	}
 
-	// Revert
-	if bytes.Contains(s.local.value, requestPrefix) {
+	// Do revert.
+	req, err := decodeRequest(s.local.value)
+	if err == nil {
 		// Request
-		req, err := decodeRequest(s.local.value)
-		if err != nil {
-			return
-		}
-		if err := s.doRequest(req, true); err != nil {
-			return
-		}
+		s.doRequest(req, true)
 	} else {
 		// Data
-		if err := s.db.Delete(s.local.key); err != nil {
-			return
-		}
+		s.db.Delete(s.local.key)
 	}
 }
 

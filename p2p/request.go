@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 )
@@ -43,6 +44,10 @@ func EncodeRequest(req Request) ([]byte, error) {
 }
 
 func decodeRequest(b []byte) (Request, error) {
+	if !bytes.Contains(b, requestPrefix) {
+		return nil, errors.New("invalid request")
+	}
+
 	if len(b) < 1 {
 		return nil, errors.New("too short")
 	}
