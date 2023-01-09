@@ -145,8 +145,9 @@ func (p *phase) commit(db database.Database) (err error) {
 	}
 
 	var (
-		want = len(p.cohorts)
-		got  = 0
+		req  Request = nil
+		want         = len(p.cohorts)
+		got          = 0
 	)
 
 	defer func() {
@@ -154,23 +155,23 @@ func (p *phase) commit(db database.Database) (err error) {
 		if err != nil {
 			p.broadcast(&abortMsg{p.id})
 
-			req, err := decodeRequest(p.value)
-			if err == nil {
-				// Request
-				p.do(req, true)
-			} else {
-				// Data
-				db.Delete(p.key)
-			}
+			tkey := p.key
 
 			p.id = [8]byte{}
 			p.key = nil
 			p.value = nil
+
+			if req != nil {
+				p.do(req, true)
+				return
+			}
+
+			db.Delete(tkey)
 		}
 	}()
 
 	// Committing.
-	req, err := decodeRequest(p.value)
+	req, err = decodeRequest(p.value)
 	if err == nil {
 		// Request
 		if err = p.do(req, false); err != nil {

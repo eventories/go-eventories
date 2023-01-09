@@ -115,10 +115,10 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 			// Revert
 			if req != nil {
 				s.doRequest(req, true)
+				return
 			}
-			if req == nil {
-				s.db.Delete(s.local.key)
-			}
+
+			s.db.Delete(s.local.key)
 		}
 	}()
 
