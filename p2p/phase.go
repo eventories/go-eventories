@@ -87,7 +87,47 @@ func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
 }
 
 func (p *phase) prepare(key []byte, value []byte) error {
-	panic("not")
+	if p.state != wait {
+		return errors.New("invalid phase state")
+	}
+
+	var (
+		id   = randomIDGenerator()
+		want = len(p.cohorts)
+		got  = 0
+	)
+
+	p.id = id
+	p.key = key
+	p.value = value
+
+	p.broadcast(&prepareMsg{id, key, value})
+
+	timer := time.NewTimer(time.Second)
+	defer timer.Stop()
+	for {
+		select {
+		case msg := <-p.msgCh:
+			ack := msg.(*ackMsg)
+			if ack.ID != id {
+				continue
+			}
+
+			got++
+
+			if got == want {
+				p.broadcast(&ackMsg{id})
+				return nil
+			}
+
+		case <-timer.C:
+			p.broadcast(&abortMsg{id})
+			p.id = [8]byte{}
+			p.key = nil
+			p.value = nil
+			return errors.New("timeout")
+		}
+	}
 }
 
 func (p *phase) commit(db database.Database) error {
@@ -108,6 +148,12 @@ func (p *phase) readCohorts() chan Msg {
 		}(p)
 	}
 	return resCh
+}
+
+func (p *phase) broadcast(msg Msg) {
+	for _, cohort := range p.cohorts {
+		go cohort.writeMsg(msg)
+	}
 }
 
 func randomIDGenerator() [8]byte {
