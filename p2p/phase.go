@@ -108,12 +108,21 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	for {
 		select {
 		case msg := <-p.msgCh:
-			ack := msg.(*ackMsg)
-			if ack.ID != id {
-				continue
-			}
+			switch msg.Kind() {
+			case ackMsgType:
+				ack := msg.(*ackMsg)
+				if ack.ID == id {
+					got++
+				}
 
-			got++
+			case abortMsgType:
+				abort := msg.(*abortMsg)
+				if abort.ID == id {
+					p.id = [8]byte{}
+					p.key = nil
+					p.value = nil
+				}
+			}
 
 			if got == want {
 				p.broadcast(&ackMsg{id})
