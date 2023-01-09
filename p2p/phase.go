@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"bytes"
 	"errors"
 	"math/rand"
 	"net"
@@ -24,7 +25,7 @@ type phase struct {
 	cohorts []*peer
 	msgCh   chan Msg
 
-	do func(Request, bool) error
+	do func(req Request, abort bool) error
 }
 
 func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
@@ -139,8 +140,86 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	}
 }
 
-func (p *phase) commit(db database.Database) error {
-	panic("not")
+func (p *phase) commit(db database.Database) (err error) {
+	if p.state != prepare {
+		return errors.New("invalid phase state")
+	}
+
+	var (
+		want = len(p.cohorts)
+		got  = 0
+	)
+
+	defer func() {
+		// Do revert.
+		if err != nil {
+			p.broadcast(&abortMsg{p.id})
+
+			if bytes.Contains(p.value, requestPrefix) {
+				// Request
+				req, err := decodeRequest(p.value)
+				if err != nil {
+					return
+				}
+				p.do(req, true)
+			} else {
+				// Data
+				db.Delete(p.key)
+			}
+
+			p.id = [8]byte{}
+			p.key = nil
+			p.value = nil
+		}
+	}()
+
+	// Committing.
+	if bytes.Contains(p.value, requestPrefix) {
+		var req Request
+		req, err = decodeRequest(p.value)
+		if err != nil {
+			return
+		}
+		if err = p.do(req, false); err != nil {
+			return
+		}
+	} else {
+		if err = db.Put(p.key, p.value); err != nil {
+			return
+		}
+	}
+
+	// Aggregate ack.
+	timer := time.NewTimer(time.Second)
+	defer timer.Stop()
+	for {
+		select {
+		case msg := <-p.msgCh:
+			switch msg.Kind() {
+			case ackMsgType:
+				ack := msg.(*ackMsg)
+				if ack.ID == p.id {
+					got++
+				}
+
+			case abortMsgType:
+				abort := msg.(*abortMsg)
+				if abort.ID == p.id {
+					return errors.New("got abort msg")
+				}
+			}
+
+			if got == want {
+				p.broadcast(&ackMsg{p.id})
+				return nil
+			}
+
+		case <-timer.C:
+			return errors.New("timeout")
+		}
+	}
+
+	return nil
 }
 
 func (p *phase) readCohorts() chan Msg {
