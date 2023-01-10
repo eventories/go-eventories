@@ -21,11 +21,11 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		s.handle(&peer{conn})
+		go s.readLoop(&peer{conn})
 	}
 }
 
-func (s *Server) handle(peer *peer) {
+func (s *Server) readLoop(peer *peer) {
 	defer func() {
 		time.Sleep(time.Second)
 		peer.conn.Close()
@@ -37,31 +37,35 @@ func (s *Server) handle(peer *peer) {
 			return
 		}
 
-		switch msg.Kind() {
-		case prepareMsgType:
-			prepare, ok := msg.(*prepareMsg)
-			if !ok {
-				return
-			}
+		s.handle(peer, msg)
+	}
+}
 
-			s.prepareHandle(peer, prepare)
-
-		case commitMsgType:
-			commit, ok := msg.(*commitMsg)
-			if !ok {
-				return
-			}
-
-			s.commitHandle(peer, commit)
-
-		case abortMsgType:
-			abort, ok := msg.(*abortMsg)
-			if !ok {
-				return
-			}
-
-			s.abortHandle(peer, abort)
+func (s *Server) handle(peer *peer, msg Msg) {
+	switch msg.Kind() {
+	case prepareMsgType:
+		prepare, ok := msg.(*prepareMsg)
+		if !ok {
+			return
 		}
+
+		s.prepareHandle(peer, prepare)
+
+	case commitMsgType:
+		commit, ok := msg.(*commitMsg)
+		if !ok {
+			return
+		}
+
+		s.commitHandle(peer, commit)
+
+	case abortMsgType:
+		abort, ok := msg.(*abortMsg)
+		if !ok {
+			return
+		}
+
+		s.abortHandle(peer, abort)
 	}
 }
 
@@ -93,7 +97,15 @@ func (s *Server) prepareHandle(peer *peer, prepare *prepareMsg) {
 		return
 	}
 
-	if prepare.ID != msg.(*ackMsg).ID {
+	// Checks that is received abortMsg.
+	ack, ok := msg.(*ackMsg)
+	if !ok {
+		// Occur panic if it is not an abortMsg.
+		s.handle(peer, msg.(*abortMsg))
+		return
+	}
+
+	if prepare.ID != ack.ID {
 		err = errInvalidID
 		return
 	}
@@ -144,7 +156,15 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 		return
 	}
 
-	if s.local.id != msg.(*ackMsg).ID {
+	// Checks that is received abortMsg.
+	ack, ok := msg.(*ackMsg)
+	if !ok {
+		// Occur panic if it is not an abortMsg.
+		s.handle(peer, msg.(*abortMsg))
+		return
+	}
+
+	if s.local.id != ack.ID {
 		err = errInvalidID
 		return
 	}
