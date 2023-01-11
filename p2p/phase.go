@@ -118,9 +118,7 @@ func (p *phase) prepare(key []byte, value []byte) error {
 			case abortMsgType:
 				abort := msg.(*abortMsg)
 				if abort.ID == id {
-					p.id = [8]byte{}
-					p.key = nil
-					p.value = nil
+					return errors.New("got abortMsg")
 				}
 			}
 
@@ -131,9 +129,6 @@ func (p *phase) prepare(key []byte, value []byte) error {
 
 		case <-timer.C:
 			p.broadcast(&abortMsg{id})
-			p.id = [8]byte{}
-			p.key = nil
-			p.value = nil
 			return errors.New("timeout")
 		}
 	}
@@ -155,18 +150,12 @@ func (p *phase) commit(db database.Database) (err error) {
 		if err != nil {
 			p.broadcast(&abortMsg{p.id})
 
-			tkey := p.key
-
-			p.id = [8]byte{}
-			p.key = nil
-			p.value = nil
-
 			if req != nil {
 				p.do(req, true)
 				return
 			}
 
-			db.Delete(tkey)
+			db.Delete(p.key)
 		}
 	}()
 
@@ -200,7 +189,7 @@ func (p *phase) commit(db database.Database) (err error) {
 			case abortMsgType:
 				abort := msg.(*abortMsg)
 				if abort.ID == p.id {
-					return errors.New("got abort msg")
+					return errors.New("got abortMsg")
 				}
 			}
 
@@ -213,8 +202,6 @@ func (p *phase) commit(db database.Database) (err error) {
 			return errors.New("timeout")
 		}
 	}
-
-	return nil
 }
 
 func (p *phase) readCohorts() chan Msg {
