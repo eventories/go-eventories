@@ -10,10 +10,16 @@ const (
 	prepareMsgType
 	commitMsgType
 	abortMsgType
+
+	handshakeMsgType
+	h_ackMsgType
+	h_nackMsgType
+
+	syncReqMsgType
+	syncResMsgType
 )
 
 type Msg interface {
-	PhaseID() [8]byte
 	Kind() byte
 }
 
@@ -36,6 +42,22 @@ type (
 	abortMsg struct {
 		ID [8]byte
 	}
+)
+
+// handkshake
+type (
+	handshakeMsg struct{}
+
+	h_ackMsg struct{}
+
+	h_nackMsg struct{}
+)
+
+// sync
+type (
+	syncReqMsg struct{}
+
+	syncResMsg struct{}
 )
 
 func encodeMsg(msg Msg) ([]byte, error) {
@@ -82,6 +104,36 @@ func decodeMsg(b []byte) (Msg, error) {
 			return &m, nil
 		}
 
+	case handshakeMsgType:
+		var m handshakeMsg
+		if err = json.Unmarshal(b[1:], &m); err == nil {
+			return &m, nil
+		}
+
+	case h_ackMsgType:
+		var m h_ackMsg
+		if err = json.Unmarshal(b[1:], &m); err == nil {
+			return &m, nil
+		}
+
+	case h_nackMsgType:
+		var m h_nackMsg
+		if err = json.Unmarshal(b[1:], &m); err == nil {
+			return &m, nil
+		}
+
+	case syncReqMsgType:
+		var m syncReqMsg
+		if err = json.Unmarshal(b[1:], &m); err == nil {
+			return &m, nil
+		}
+
+	case syncResMsgType:
+		var m syncResMsg
+		if err = json.Unmarshal(b[1:], &m); err == nil {
+			return &m, nil
+		}
+
 	default:
 		err = errors.New("invalid msg type")
 	}
@@ -89,14 +141,12 @@ func decodeMsg(b []byte) (Msg, error) {
 	return nil, err
 }
 
-func (a *ackMsg) PhaseID() [8]byte { return a.ID }
-func (*ackMsg) Kind() byte         { return ackMsgType }
-
-func (p *prepareMsg) PhaseID() [8]byte { return p.ID }
-func (*prepareMsg) Kind() byte         { return prepareMsgType }
-
-func (c *commitMsg) PhaseID() [8]byte { return c.ID }
-func (*commitMsg) Kind() byte         { return commitMsgType }
-
-func (a *abortMsg) PhaseID() [8]byte { return a.ID }
-func (*abortMsg) Kind() byte         { return abortMsgType }
+func (*ackMsg) Kind() byte       { return ackMsgType }
+func (*prepareMsg) Kind() byte   { return prepareMsgType }
+func (*commitMsg) Kind() byte    { return commitMsgType }
+func (*abortMsg) Kind() byte     { return abortMsgType }
+func (*handshakeMsg) Kind() byte { return handshakeMsgType }
+func (*h_ackMsg) Kind() byte     { return h_ackMsgType }
+func (*h_nackMsg) Kind() byte    { return h_nackMsgType }
+func (*syncReqMsg) Kind() byte   { return syncReqMsgType }
+func (*syncResMsg) Kind() byte   { return syncResMsgType }

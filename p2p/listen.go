@@ -21,16 +21,31 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		go s.readLoop(&peer{conn})
+		go func(peer *peer) {
+			defer func() {
+				time.Sleep(time.Second)
+				peer.conn.Close()
+			}()
+
+			synchronized, err := doHandshake(peer, s)
+			if err != nil {
+				panic("noop")
+			}
+
+			if !synchronized {
+				if err := doSyncronization(peer, s); err != nil {
+					panic("noop")
+				}
+			}
+
+			// Start 2pc protocol.
+			s.readLoop(peer)
+		}(&peer{conn})
 	}
 }
 
+// is need to seperate by protocol?
 func (s *Server) readLoop(peer *peer) {
-	defer func() {
-		time.Sleep(time.Second)
-		peer.conn.Close()
-	}()
-
 	for {
 		msg, err := peer.readMsg()
 		if err != nil {
