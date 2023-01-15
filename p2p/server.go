@@ -10,6 +10,10 @@ import (
 )
 
 type Server struct {
+	// *checkpoint { database.Database }
+	seq uint64
+	bn  uint64
+
 	listener *net.TCPListener
 	election *election.Election
 	db       database.Database

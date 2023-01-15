@@ -21,6 +21,8 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
+		// Need start readLoop first(for handle messages about protocol).
+
 		go func(peer *peer) {
 			defer func() {
 				time.Sleep(time.Second)
@@ -39,6 +41,8 @@ func (s *Server) acceptLoop() {
 			}
 
 			// Start 2pc protocol.
+			//
+			// define `handler` (e.g. call handler.Run())
 			s.readLoop(peer)
 		}(&peer{conn})
 	}

@@ -46,11 +46,15 @@ type (
 
 // handkshake
 type (
-	handshakeMsg struct{}
+	handshakeMsg struct {
+		// Sequence uint64
+		// LatestBN uint64
+	}
 
-	h_ackMsg struct{}
-
-	h_nackMsg struct{}
+	h_ackMsg struct {
+		Sequence uint64
+		LatestBN uint64
+	}
 )
 
 // sync
@@ -116,12 +120,6 @@ func decodeMsg(b []byte) (Msg, error) {
 			return &m, nil
 		}
 
-	case h_nackMsgType:
-		var m h_nackMsg
-		if err = json.Unmarshal(b[1:], &m); err == nil {
-			return &m, nil
-		}
-
 	case syncReqMsgType:
 		var m syncReqMsg
 		if err = json.Unmarshal(b[1:], &m); err == nil {
@@ -147,6 +145,5 @@ func (*commitMsg) Kind() byte    { return commitMsgType }
 func (*abortMsg) Kind() byte     { return abortMsgType }
 func (*handshakeMsg) Kind() byte { return handshakeMsgType }
 func (*h_ackMsg) Kind() byte     { return h_ackMsgType }
-func (*h_nackMsg) Kind() byte    { return h_nackMsgType }
 func (*syncReqMsg) Kind() byte   { return syncReqMsgType }
 func (*syncResMsg) Kind() byte   { return syncResMsgType }
