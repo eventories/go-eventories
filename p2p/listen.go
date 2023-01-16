@@ -30,13 +30,13 @@ func (s *Server) acceptLoop() {
 			peer.registerProtocol("HANDSHAKE")
 			peer.registerProtocol("SYNC")
 
-			synchronized, err := doHandshake(peer, s)
+			synchronized, err := s.doHandshake(peer)
 			if err != nil {
 				panic("noop")
 			}
 
 			if !synchronized {
-				if err := doSyncronization(peer, s); err != nil {
+				if err := s.doSyncronization(peer); err != nil {
 					panic("noop")
 				}
 			}

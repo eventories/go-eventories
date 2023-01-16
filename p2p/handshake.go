@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-func doHandshake(peer *peer, backend *Server) (synchronized bool, err error) {
+func (s *Server) doHandshake(peer *peer) (synchronized bool, err error) {
 	var (
-		seq = backend.seq
-		bn  = backend.bn
+		seq = s.seq
+		bn  = s.bn
 	)
 
 	if err := peer.writeMsg(&handshakeMsg{ /*seq, bn*/ }); err != nil {

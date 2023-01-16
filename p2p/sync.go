@@ -1,6 +1,6 @@
 package p2p
 
-func doSyncronization(peer *peer, backend *Server) error {
+func (s *Server) doSyncronization(peer *peer) error {
 	panic("not impl")
 }
 
