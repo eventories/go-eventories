@@ -31,3 +31,11 @@ func doHandshake(peer *peer, backend *Server) (synchronized bool, err error) {
 
 	return (bn == ack.LatestBN), nil
 }
+
+func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {
+	panic("not impl")
+}
+
+func (s *Server) h_ackHandle(peer *peer, ack *h_ackMsg) {
+	panic("not impl")
+}

@@ -48,7 +48,7 @@ func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
 				return
 			}
 
-			resCh <- &peer{conn}
+			resCh <- &peer{conn: conn, protocols: make(map[string]struct{})}
 		}(cohort)
 	}
 

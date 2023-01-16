@@ -21,6 +21,7 @@ const (
 
 type Msg interface {
 	Kind() byte
+	Protocol() string
 }
 
 // 2-phase-commit
@@ -140,10 +141,25 @@ func decodeMsg(b []byte) (Msg, error) {
 }
 
 func (*ackMsg) Kind() byte       { return ackMsgType }
-func (*prepareMsg) Kind() byte   { return prepareMsgType }
-func (*commitMsg) Kind() byte    { return commitMsgType }
-func (*abortMsg) Kind() byte     { return abortMsgType }
-func (*handshakeMsg) Kind() byte { return handshakeMsgType }
-func (*h_ackMsg) Kind() byte     { return h_ackMsgType }
-func (*syncReqMsg) Kind() byte   { return syncReqMsgType }
-func (*syncResMsg) Kind() byte   { return syncResMsgType }
+func (*ackMsg) Protocol() string { return "2PC" }
+
+func (*prepareMsg) Kind() byte       { return prepareMsgType }
+func (*prepareMsg) Protocol() string { return "2PC" }
+
+func (*commitMsg) Kind() byte       { return commitMsgType }
+func (*commitMsg) Protocol() string { return "2PC" }
+
+func (*abortMsg) Kind() byte       { return abortMsgType }
+func (*abortMsg) Protocol() string { return "2PC" }
+
+func (*handshakeMsg) Kind() byte       { return handshakeMsgType }
+func (*handshakeMsg) Protocol() string { return "HANDSHAKE" }
+
+func (*h_ackMsg) Kind() byte       { return h_ackMsgType }
+func (*h_ackMsg) Protocol() string { return "HANDSHAKE" }
+
+func (*syncReqMsg) Kind() byte       { return syncReqMsgType }
+func (*syncReqMsg) Protocol() string { return "SYNC" }
+
+func (*syncResMsg) Kind() byte       { return syncResMsgType }
+func (*syncResMsg) Protocol() string { return "SYNC" }

@@ -35,7 +35,7 @@ func TestPeerRW(t *testing.T) {
 				panic(err)
 			}
 
-			peer := &peer{conn}
+			peer := &peer{conn: conn, protocols: make(map[string]struct{})}
 			peer.writeMsg(m)
 			peer.conn.Close()
 		}(sender, msg)
@@ -49,7 +49,7 @@ func TestPeerRW(t *testing.T) {
 			panic(err)
 		}
 
-		peer := &peer{conn}
+		peer := &peer{conn: conn, protocols: make(map[string]struct{})}
 		defer peer.conn.Close()
 
 		msg, err := peer.readMsg()
