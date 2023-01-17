@@ -53,7 +53,6 @@ type (
 	}
 
 	h_ackMsg struct {
-		Sequence uint64
 		LatestBN uint64
 	}
 )

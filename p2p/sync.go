@@ -1,6 +1,6 @@
 package p2p
 
-func (s *Server) doSyncronization(peer *peer) error {
+func (s *Server) doSyncronization(peer *peer, start uint64, end uint64) error {
 	panic("not impl")
 }
 

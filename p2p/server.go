@@ -10,9 +10,7 @@ import (
 )
 
 type Server struct {
-	// *checkpoint { database.Database }
-	seq uint64
-	bn  uint64
+	cp *checkpoint
 
 	listener *net.TCPListener
 	election *election.Election
@@ -23,6 +21,7 @@ type Server struct {
 
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
 	s := &Server{
+		cp:       newCheckpoint("temp"),
 		listener: listener,
 		election: election,
 		db:       db,
