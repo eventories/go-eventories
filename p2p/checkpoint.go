@@ -18,7 +18,7 @@ func newCheckpoint(path string) *checkpoint {
 		return &checkpoint{path, 0}
 	}
 
-	bn, err := ioutil.ReadFile("checkpoint")
+	bn, err := ioutil.ReadFile(path + "checkpoint")
 	if err != nil {
 		return &checkpoint{path, 0}
 	}
