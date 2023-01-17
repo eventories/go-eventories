@@ -21,25 +21,27 @@ func (s *Server) acceptLoop() {
 		p := &peer{conn: conn, protocols: make(map[string]struct{})}
 		go s.readLoop(p)
 
+		p.registerProtocol("HANDSHAKE")
+		p.registerProtocol("SYNC")
+
+		bn, err := s.doHandshake(p)
+		if err != nil {
+			p.conn.Close()
+			return
+		}
+
+		if s.cp.blockNumber() < bn {
+			if err := s.doSyncronization(p, s.cp.blockNumber(), bn); err != nil {
+				p.conn.Close()
+				return
+			}
+		}
+
 		go func(peer *peer) {
 			defer func() {
 				time.Sleep(time.Second)
 				peer.conn.Close()
 			}()
-
-			peer.registerProtocol("HANDSHAKE")
-			peer.registerProtocol("SYNC")
-
-			synchronized, err := s.doHandshake(peer)
-			if err != nil {
-				panic("noop")
-			}
-
-			if !synchronized {
-				if err := s.doSyncronization(peer); err != nil {
-					panic("noop")
-				}
-			}
 
 			// Start 2pc protocol.
 			peer.registerProtocol("2PC")
