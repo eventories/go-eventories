@@ -68,7 +68,6 @@ func (s *Server) Role() election.Role {
 	return s.election.Role()
 }
 
-// Non-cluster solo mode must be considered.
 func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 	if s.election.Role() != election.Leader {
 		return errors.New("not leader")

@@ -28,9 +28,21 @@ type phase struct {
 }
 
 func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
-	if cohorts == nil {
-		return nil, errors.New("empty cluster")
+	phase := &phase{
+		id:      randomIDGenerator(),
+		state:   wait,
+		key:     make([]byte, 0),
+		value:   make([]byte, 0),
+		cohorts: nil,
+		msgCh:   nil,
+		do:      do,
 	}
+
+	if cohorts == nil {
+		phase.msgCh = make(chan Msg, 1)
+		return phase, nil
+	}
+
 	peers := make([]*peer, 0, len(cohorts))
 
 	resCh := make(chan *peer, len(cohorts))
@@ -71,16 +83,7 @@ func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
 		return nil, err
 	}
 
-	phase := &phase{
-		id:      randomIDGenerator(),
-		state:   wait,
-		key:     make([]byte, 0),
-		value:   make([]byte, 0),
-		cohorts: peers,
-		msgCh:   nil,
-		do:      do,
-	}
-
+	phase.cohorts = peers
 	phase.msgCh = phase.readCohorts()
 
 	return phase, nil
@@ -93,7 +96,7 @@ func (p *phase) prepare(key []byte, value []byte) error {
 
 	var (
 		id   = randomIDGenerator()
-		want = len(p.cohorts)
+		want = len(p.cohorts) + 1 // Include node selfs.
 		got  = 0
 	)
 
@@ -101,10 +104,12 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	p.key = key
 	p.value = value
 
-	p.broadcast(&prepareMsg{id, key, value})
+	p.msgCh <- &ackMsg{ID: id}
+	p.broadcast(&prepareMsg{id, key, value}) // Self ack.
 
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
+
 	for {
 		select {
 		case msg := <-p.msgCh:
@@ -124,6 +129,7 @@ func (p *phase) prepare(key []byte, value []byte) error {
 
 			if got == want {
 				p.broadcast(&ackMsg{id})
+				p.state = prepare
 				return nil
 			}
 
@@ -141,7 +147,7 @@ func (p *phase) commit(db database.Database) (err error) {
 
 	var (
 		req  Request = nil
-		want         = len(p.cohorts)
+		want         = len(p.cohorts) + 1 // Include node selfs.
 		got          = 0
 	)
 
@@ -173,9 +179,12 @@ func (p *phase) commit(db database.Database) (err error) {
 		}
 	}
 
+	p.msgCh <- &ackMsg{ID: p.id} // Self ack.
+
 	// Aggregate ack.
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
+
 	for {
 		select {
 		case msg := <-p.msgCh:
