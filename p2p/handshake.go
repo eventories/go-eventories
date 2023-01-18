@@ -24,9 +24,5 @@ func (s *Server) doHandshake(peer *peer) (uint64, error) {
 }
 
 func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {
-	panic("not impl")
-}
-
-func (s *Server) h_ackHandle(peer *peer, ack *h_ackMsg) {
-	panic("not impl")
+	peer.writeMsg(&h_ackMsg{LatestBN: s.engine.BlockNumber()})
 }

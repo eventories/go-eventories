@@ -59,9 +59,14 @@ type (
 
 // sync
 type (
-	syncReqMsg struct{}
+	syncReqMsg struct {
+		Key []byte
+	}
 
-	syncResMsg struct{}
+	syncResMsg struct {
+		Key   []byte
+		Value []byte
+	}
 )
 
 func encodeMsg(msg Msg) ([]byte, error) {
