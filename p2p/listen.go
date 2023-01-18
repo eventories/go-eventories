@@ -30,8 +30,8 @@ func (s *Server) acceptLoop() {
 			return
 		}
 
-		if s.cp.blockNumber() < bn {
-			if err := s.doSyncronization(p, s.cp.blockNumber(), bn); err != nil {
+		if s.engine.BlockNumber() < bn {
+			if err := s.doSyncronization(p, s.engine.BlockNumber(), bn); err != nil {
 				p.conn.Close()
 				return
 			}
@@ -71,14 +71,8 @@ func (s *Server) handle(peer *peer, msg Msg) {
 	case handshakeMsgType:
 		s.handshakeHandle(peer, msg.(*handshakeMsg))
 
-	case h_ackMsgType:
-		s.h_ackHandle(peer, msg.(*h_ackMsg))
-
 	case syncReqMsgType:
 		s.syncReqHandle(peer, msg.(*syncReqMsg))
-
-	case syncResMsgType:
-		s.syncResHandle(peer, msg.(*syncResMsg))
 
 	case prepareMsgType:
 		s.prepareHandle(peer, msg.(*prepareMsg))

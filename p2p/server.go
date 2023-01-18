@@ -3,14 +3,18 @@ package p2p
 import (
 	"context"
 	"errors"
+	"log"
 	"net"
 
 	"github.com/eventories/election"
+	"github.com/eventories/go-eventories/core"
 	"github.com/eventories/go-eventories/database"
 )
 
 type Server struct {
-	cp *checkpoint
+	engine *core.Fetcher
+
+	logger *log.Logger
 
 	listener *net.TCPListener
 	election *election.Election
@@ -21,7 +25,7 @@ type Server struct {
 
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
 	s := &Server{
-		cp:       newCheckpoint("temp"),
+		engine:   nil,
 		listener: listener,
 		election: election,
 		db:       db,
