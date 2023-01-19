@@ -26,6 +26,7 @@ func (s *Server) doSyncronization(peer *peer, start uint64, end uint64) error {
 			return err
 		}
 
+		// FIXME
 		if err := s.engine.SetBlockNumber(start); err != nil {
 			return err
 		}
