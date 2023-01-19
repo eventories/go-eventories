@@ -49,6 +49,8 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 			peer.conn.Close()
 			return nil, err
 		}
+
+		return peer, nil
 	}
 
 	panic("invalid protocl")
