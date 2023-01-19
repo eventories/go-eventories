@@ -69,13 +69,23 @@ func (s *Server) Role() election.Role {
 	return s.election.Role()
 }
 
-func (s *Server) Commit(ctx context.Context, key []byte, value []byte, temp []string) error {
+func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 	if s.election.Role() != election.Leader {
 		return errors.New("not leader")
 	}
 
-	cohorts := make([]*peer, 0, len(temp))
-	for _, addr := range temp {
+	var (
+		cluster = s.election.Cluster()
+		cohorts = make([]*peer, 0, len(cluster))
+	)
+
+	defer func() {
+		for _, cohort := range cohorts {
+			cohort.conn.Close()
+		}
+	}()
+
+	for _, addr := range cluster {
 		peer, err := DialTCP(addr, s)
 		if err != nil {
 			return err
@@ -83,7 +93,7 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte, temp []st
 		cohorts = append(cohorts, peer)
 	}
 
-	phase, err := newPhase(cohorts, s.doRequest) // s.election.Cluster(), s.doRequest)
+	phase, err := newPhase(cohorts, s.doRequest)
 	if err != nil {
 		return err
 	}
