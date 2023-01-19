@@ -2,25 +2,50 @@ package p2p
 
 import (
 	"errors"
+	"net"
 	"time"
 )
 
-func (s *Server) doHandshake(peer *peer) (uint64, error) {
-	if err := peer.writeMsg(&handshakeMsg{ /*seq, bn*/ }); err != nil {
-		return 0, err
+func DialTCP(rawaddr string, backend *Server) (*peer, error) {
+	addr, err := net.ResolveTCPAddr("tcp", rawaddr)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := net.DialTCP("tcp", nil, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	peer := &peer{conn: conn}
+
+	if err := peer.writeMsg(&handshakeMsg{}); err != nil {
+		peer.conn.Close()
+		return nil, err
 	}
 
 	msg, err := peer.readMsgWithTimeout(time.Second)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	ack, ok := msg.(*h_ackMsg)
 	if !ok {
-		return 0, errors.New("invalid message")
+		return nil, errors.New("invalid message")
 	}
 
-	return ack.LatestBN, nil
+	if backend.engine.BlockNumber() == ack.LatestBN {
+		return peer, nil
+	}
+
+	if backend.engine.BlockNumber() < ack.LatestBN {
+		if err := backend.doSyncronization(peer, backend.engine.BlockNumber(), ack.LatestBN); err != nil {
+			peer.conn.Close()
+			return nil, err
+		}
+	}
+
+	panic("invalid protocl")
 }
 
 func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {

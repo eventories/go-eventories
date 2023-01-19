@@ -15,7 +15,7 @@ func TestPeerRW(t *testing.T) {
 	test["127.0.0.1:51133"] = &abortMsg{[8]byte{3, 3, 3, 3, 3, 3, 3, 3}}
 
 	server := "127.0.0.1:51134"
-	mock := mockServer(server)
+	mock := makeListener(server)
 	defer mock.Close()
 
 	for sender, msg := range test {
@@ -35,7 +35,7 @@ func TestPeerRW(t *testing.T) {
 				panic(err)
 			}
 
-			peer := &peer{conn: conn, protocols: make(map[string]struct{})}
+			peer := &peer{conn: conn}
 			peer.writeMsg(m)
 			peer.conn.Close()
 		}(sender, msg)
@@ -49,7 +49,7 @@ func TestPeerRW(t *testing.T) {
 			panic(err)
 		}
 
-		peer := &peer{conn: conn, protocols: make(map[string]struct{})}
+		peer := &peer{conn: conn}
 		defer peer.conn.Close()
 
 		msg, err := peer.readMsg()
@@ -80,7 +80,7 @@ func compareMsg(a Msg, b Msg) bool {
 	return bytes.Equal(b1, b2)
 }
 
-func mockServer(raw string) *net.TCPListener {
+func makeListener(raw string) *net.TCPListener {
 	addr, err := net.ResolveTCPAddr("tcp", raw)
 	if err != nil {
 		panic("mockServer generation failed: invalid raw address")

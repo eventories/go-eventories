@@ -18,34 +18,14 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		p := &peer{conn: conn, protocols: make(map[string]struct{})}
-		go s.readLoop(p)
-
-		p.registerProtocol("HANDSHAKE")
-		p.registerProtocol("SYNC")
-
-		bn, err := s.doHandshake(p)
-		if err != nil {
-			p.conn.Close()
-			return
-		}
-
-		if s.engine.BlockNumber() < bn {
-			if err := s.doSyncronization(p, s.engine.BlockNumber(), bn); err != nil {
-				p.conn.Close()
-				return
-			}
-		}
-
 		go func(peer *peer) {
 			defer func() {
 				time.Sleep(time.Second)
 				peer.conn.Close()
 			}()
 
-			// Start 2pc protocol.
-			peer.registerProtocol("2PC")
-		}(p)
+			s.readLoop(peer)
+		}(&peer{conn: conn})
 	}
 }
 
@@ -55,11 +35,6 @@ func (s *Server) readLoop(peer *peer) {
 		msg, err := peer.readMsg()
 		if err != nil {
 			return
-		}
-
-		if !peer.protocol(msg.Protocol()) {
-			// Ignore not support protocol messages.
-			continue
 		}
 
 		s.handle(peer, msg)

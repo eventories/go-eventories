@@ -61,19 +61,29 @@ func (s *Server) LeaderIP() net.IP {
 }
 
 func (s *Server) Cluster() []string {
-	return s.election.Cluster()
+	return nil
+	// return s.election.Cluster()
 }
 
 func (s *Server) Role() election.Role {
 	return s.election.Role()
 }
 
-func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
+func (s *Server) Commit(ctx context.Context, key []byte, value []byte, temp []string) error {
 	if s.election.Role() != election.Leader {
 		return errors.New("not leader")
 	}
 
-	phase, err := newPhase(s.election.Cluster(), s.doRequest)
+	cohorts := make([]*peer, 0, len(temp))
+	for _, addr := range temp {
+		peer, err := DialTCP(addr, s)
+		if err != nil {
+			return err
+		}
+		cohorts = append(cohorts, peer)
+	}
+
+	phase, err := newPhase(cohorts, s.doRequest) // s.election.Cluster(), s.doRequest)
 	if err != nil {
 		return err
 	}

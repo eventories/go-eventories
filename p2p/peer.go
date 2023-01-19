@@ -3,28 +3,11 @@ package p2p
 import (
 	"errors"
 	"net"
-	"sync"
 	"time"
 )
 
 type peer struct {
 	conn *net.TCPConn
-
-	mu        sync.Mutex
-	protocols map[string]struct{}
-}
-
-func (p *peer) registerProtocol(protocol string) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.protocols[protocol] = struct{}{}
-}
-
-func (p *peer) protocol(protocol string) bool {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	_, ok := p.protocols[protocol]
-	return ok
 }
 
 func (p *peer) writeMsg(msg Msg) error {
