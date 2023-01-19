@@ -58,13 +58,14 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	var (
 		id   = randomIDGenerator()
 		want = len(p.cohorts) + 1 // Include node selfs.
-		got  = 1
+		got  = 0
 	)
 
 	p.id = id
 	p.key = key
 	p.value = value
 
+	p.msgCh <- &ackMsg{id}
 	p.broadcast(&prepareMsg{p.seq, id, key, value})
 
 	timer := time.NewTimer(time.Second)
@@ -108,7 +109,7 @@ func (p *phase) commit(db database.Database) (err error) {
 	var (
 		req  Request = nil
 		want         = len(p.cohorts) + 1 // Include node selfs.
-		got          = 1
+		got          = 0
 	)
 
 	defer func() {
@@ -137,10 +138,11 @@ func (p *phase) commit(db database.Database) (err error) {
 		return
 	}
 
+	p.msgCh <- &ackMsg{p.id}
 	p.broadcast(&commitMsg{p.id})
 
 	// Aggregate ack.
-	timer := time.NewTimer(5 * time.Second)
+	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
 
 	for {
