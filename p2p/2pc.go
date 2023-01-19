@@ -64,7 +64,6 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 			// Revert
 			if req != nil {
 				s.doRequest(req, true)
-				return
 			}
 
 			s.db.Delete(s.local.key)
@@ -77,11 +76,10 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 		if err := s.doRequest(req, false); err != nil {
 			return
 		}
-	} else {
-		// Data
-		if err := s.db.Put(s.local.key, s.local.value); err != nil {
-			return
-		}
+	}
+
+	if err := s.db.Put(s.local.key, s.local.value); err != nil {
+		return
 	}
 
 	if err = peer.writeMsg(&ackMsg{s.local.id}); err != nil {

@@ -116,7 +116,6 @@ func (p *phase) commit(db database.Database) (err error) {
 
 			if req != nil {
 				p.do(req, true)
-				return
 			}
 
 			db.Delete(p.key)
@@ -130,11 +129,10 @@ func (p *phase) commit(db database.Database) (err error) {
 		if err = p.do(req, false); err != nil {
 			return
 		}
-	} else {
-		// Data
-		if err = db.Put(p.key, p.value); err != nil {
-			return
-		}
+	}
+
+	if err = db.Put(p.key, p.value); err != nil {
+		return
 	}
 
 	p.broadcast(&commitMsg{p.id})
