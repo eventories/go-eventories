@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync/atomic"
 	"time"
 )
 
@@ -36,7 +35,7 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 		return nil, errors.New("invalid message")
 	}
 
-	currentSeq := atomic.LoadUint64(&backend.seq)
+	currentSeq := backend.seq.Checkpoint()
 
 	if currentSeq == ack.Seq {
 		return peer, nil
@@ -57,5 +56,5 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 }
 
 func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {
-	peer.writeMsg(&h_ackMsg{atomic.LoadUint64(&s.seq)})
+	peer.writeMsg(&h_ackMsg{s.seq.Checkpoint()})
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net"
-	"sync/atomic"
 
 	"github.com/eventories/election"
 	"github.com/eventories/go-eventories/core"
@@ -19,7 +18,8 @@ type recoverReq struct {
 }
 
 type Server struct {
-	seq uint64
+	seq *core.Checkpoint
+	// seq uint64
 
 	engine *core.Fetcher
 
@@ -36,6 +36,7 @@ type Server struct {
 
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
 	s := &Server{
+		seq:      core.NewCheckpoint("seq"),
 		engine:   nil,
 		listener: listener,
 		election: election,
@@ -116,7 +117,7 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 		cohorts = append(cohorts, peer)
 	}
 
-	phase, err := newPhase(atomic.LoadUint64(&s.seq), cohorts, s.doRequest)
+	phase, err := newPhase(s.seq.Checkpoint(), cohorts, s.doRequest)
 	if err != nil {
 		return err
 	}
@@ -129,7 +130,7 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 		return err
 	}
 
-	atomic.AddUint64(&s.seq, 1)
+	s.seq.Increase()
 
 	return nil
 }

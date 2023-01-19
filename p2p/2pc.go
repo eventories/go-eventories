@@ -3,11 +3,10 @@ package p2p
 import (
 	"bytes"
 	"errors"
-	"sync/atomic"
 )
 
 func (s *Server) prepareHandle(peer *peer, prepare *prepareMsg) {
-	if atomic.LoadUint64(&s.seq) != prepare.Seq {
+	if s.seq.Checkpoint() != prepare.Seq {
 		return
 	}
 
@@ -109,7 +108,7 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 		return
 	}
 
-	atomic.AddUint64(&s.seq, 1)
+	s.seq.Increase()
 }
 
 func (s *Server) abortHandle(peer *peer, abort *abortMsg) {
