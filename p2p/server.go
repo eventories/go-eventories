@@ -21,8 +21,6 @@ type Server struct {
 	seq *core.Checkpoint
 	// seq uint64
 
-	engine *core.Fetcher
-
 	logger *log.Logger
 
 	listener *net.TCPListener
@@ -37,7 +35,6 @@ type Server struct {
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
 	s := &Server{
 		seq:      core.NewCheckpoint("seq"),
-		engine:   nil,
 		listener: listener,
 		election: election,
 		db:       db,

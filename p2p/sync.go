@@ -27,7 +27,7 @@ func (s *Server) doSyncronization(peer *peer, start uint64, end uint64) error {
 		}
 
 		// FIXME
-		if err := s.engine.SetBlockNumber(start); err != nil {
+		if err := s.seq.SetCheckpoint(start); err != nil {
 			return err
 		}
 	}
