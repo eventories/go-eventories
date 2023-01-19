@@ -1,9 +1,9 @@
 package p2p
 
 import (
+	"bytes"
 	"errors"
 	"math/rand"
-	"net"
 	"time"
 
 	"github.com/eventories/go-eventories/database"
@@ -27,13 +27,13 @@ type phase struct {
 	do func(req Request, abort bool) error
 }
 
-func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
+func newPhase(cohorts []*peer, do func(Request, bool) error) (*phase, error) {
 	phase := &phase{
 		id:      randomIDGenerator(),
 		state:   wait,
 		key:     make([]byte, 0),
 		value:   make([]byte, 0),
-		cohorts: nil,
+		cohorts: cohorts,
 		msgCh:   nil,
 		do:      do,
 	}
@@ -43,47 +43,6 @@ func newPhase(cohorts []string, do func(Request, bool) error) (*phase, error) {
 		return phase, nil
 	}
 
-	peers := make([]*peer, 0, len(cohorts))
-
-	resCh := make(chan *peer, len(cohorts))
-	for _, cohort := range cohorts {
-		go func(rawaddr string) {
-			addr, err := net.ResolveTCPAddr("tcp", rawaddr)
-			if err != nil {
-				resCh <- nil
-				return
-			}
-
-			conn, err := net.DialTCP("tcp", nil, addr)
-			if err != nil {
-				resCh <- nil
-				return
-			}
-
-			resCh <- &peer{conn: conn, protocols: make(map[string]struct{})}
-		}(cohort)
-	}
-
-	var err error
-
-	for i := 0; i < cap(resCh); i++ {
-		peer := <-resCh
-		if peer == nil {
-			err = errors.New("invalid member address")
-		}
-		peers = append(peers, peer)
-	}
-
-	if err != nil {
-		for _, peer := range peers {
-			if peer != nil {
-				peer.conn.Close()
-			}
-		}
-		return nil, err
-	}
-
-	phase.cohorts = peers
 	phase.msgCh = phase.readCohorts()
 
 	return phase, nil
@@ -97,15 +56,14 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	var (
 		id   = randomIDGenerator()
 		want = len(p.cohorts) + 1 // Include node selfs.
-		got  = 0
+		got  = 1
 	)
 
 	p.id = id
 	p.key = key
 	p.value = value
 
-	p.msgCh <- &ackMsg{ID: id}
-	p.broadcast(&prepareMsg{id, key, value}) // Self ack.
+	p.broadcast(&prepareMsg{id, key, value})
 
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
@@ -116,13 +74,13 @@ func (p *phase) prepare(key []byte, value []byte) error {
 			switch msg.Kind() {
 			case ackMsgType:
 				ack := msg.(*ackMsg)
-				if ack.ID == id {
+				if bytes.Equal(ack.ID[:], id[:]) {
 					got++
 				}
 
 			case abortMsgType:
 				abort := msg.(*abortMsg)
-				if abort.ID == id {
+				if bytes.Equal(abort.ID[:], id[:]) {
 					return errors.New("got abortMsg")
 				}
 			}
@@ -148,7 +106,7 @@ func (p *phase) commit(db database.Database) (err error) {
 	var (
 		req  Request = nil
 		want         = len(p.cohorts) + 1 // Include node selfs.
-		got          = 0
+		got          = 1
 	)
 
 	defer func() {
@@ -179,10 +137,10 @@ func (p *phase) commit(db database.Database) (err error) {
 		}
 	}
 
-	p.msgCh <- &ackMsg{ID: p.id} // Self ack.
+	p.broadcast(&commitMsg{p.id})
 
 	// Aggregate ack.
-	timer := time.NewTimer(time.Second)
+	timer := time.NewTimer(5 * time.Second)
 	defer timer.Stop()
 
 	for {
@@ -191,13 +149,13 @@ func (p *phase) commit(db database.Database) (err error) {
 			switch msg.Kind() {
 			case ackMsgType:
 				ack := msg.(*ackMsg)
-				if ack.ID == p.id {
+				if bytes.Equal(ack.ID[:], p.id[:]) {
 					got++
 				}
 
 			case abortMsgType:
 				abort := msg.(*abortMsg)
-				if abort.ID == p.id {
+				if bytes.Equal(abort.ID[:], p.id[:]) {
 					return errors.New("got abortMsg")
 				}
 			}
@@ -231,8 +189,9 @@ func (p *phase) readCohorts() chan Msg {
 
 func (p *phase) broadcast(msg Msg) {
 	for _, cohort := range p.cohorts {
-		go cohort.writeMsg(msg)
+		cohort.writeMsg(msg)
 	}
+	time.Sleep(25 * time.Millisecond)
 }
 
 func randomIDGenerator() [8]byte {

@@ -60,6 +60,7 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 
 	defer func() {
 		if err != nil {
+			peer.writeMsg(&abortMsg{commit.ID})
 			// Revert
 			if req != nil {
 				s.doRequest(req, true)
