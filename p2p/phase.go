@@ -17,6 +17,7 @@ const (
 )
 
 type phase struct {
+	seq        uint64
 	id         [8]byte
 	state      uint32
 	key, value []byte
@@ -27,8 +28,9 @@ type phase struct {
 	do func(req Request, abort bool) error
 }
 
-func newPhase(cohorts []*peer, do func(Request, bool) error) (*phase, error) {
+func newPhase(seq uint64, cohorts []*peer, do func(Request, bool) error) (*phase, error) {
 	phase := &phase{
+		seq:     seq,
 		id:      randomIDGenerator(),
 		state:   wait,
 		key:     make([]byte, 0),
@@ -63,7 +65,7 @@ func (p *phase) prepare(key []byte, value []byte) error {
 	p.key = key
 	p.value = value
 
-	p.broadcast(&prepareMsg{id, key, value})
+	p.broadcast(&prepareMsg{p.seq, id, key, value})
 
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()

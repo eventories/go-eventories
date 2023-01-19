@@ -3,9 +3,14 @@ package p2p
 import (
 	"bytes"
 	"errors"
+	"sync/atomic"
 )
 
 func (s *Server) prepareHandle(peer *peer, prepare *prepareMsg) {
+	if atomic.LoadUint64(&s.seq) != prepare.Seq {
+		return
+	}
+
 	s.local.id = prepare.ID
 	s.local.key = prepare.Key
 	s.local.value = prepare.Value
@@ -103,6 +108,8 @@ func (s *Server) commitHandle(peer *peer, commit *commitMsg) {
 		err = errInvalidID
 		return
 	}
+
+	atomic.AddUint64(&s.seq, 1)
 }
 
 func (s *Server) abortHandle(peer *peer, abort *abortMsg) {

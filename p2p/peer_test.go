@@ -10,7 +10,7 @@ import (
 
 func TestPeerRW(t *testing.T) {
 	test := make(map[string]Msg)
-	test["127.0.0.1:51131"] = &prepareMsg{[8]byte{1, 1, 1, 1, 1, 1, 1, 1}, []byte{1, 2, 3}, []byte{4, 5, 6}}
+	test["127.0.0.1:51131"] = &prepareMsg{0, [8]byte{1, 1, 1, 1, 1, 1, 1, 1}, []byte{1, 2, 3}, []byte{4, 5, 6}}
 	test["127.0.0.1:51132"] = &commitMsg{[8]byte{2, 2, 2, 2, 2, 2, 2, 2}}
 	test["127.0.0.1:51133"] = &abortMsg{[8]byte{3, 3, 3, 3, 3, 3, 3, 3}}
 

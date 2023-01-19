@@ -5,13 +5,22 @@ import (
 	"errors"
 	"log"
 	"net"
+	"sync/atomic"
 
 	"github.com/eventories/election"
 	"github.com/eventories/go-eventories/core"
 	"github.com/eventories/go-eventories/database"
 )
 
+type recoverReq struct {
+	peer  *peer
+	start uint64
+	end   uint64
+}
+
 type Server struct {
+	seq uint64
+
 	engine *core.Fetcher
 
 	logger *log.Logger
@@ -21,6 +30,8 @@ type Server struct {
 	db       database.Database
 
 	local *phase // storage mode
+
+	recover chan recoverReq
 }
 
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
@@ -29,6 +40,7 @@ func NewServer(listener *net.TCPListener, election *election.Election, db databa
 		listener: listener,
 		election: election,
 		db:       db,
+		recover:  make(chan recoverReq),
 	}
 
 	s.local = &phase{
@@ -47,9 +59,20 @@ func (s *Server) Run() error {
 		return err
 	}
 
+	go s.loop()
 	go s.acceptLoop()
 
 	return nil
+}
+
+// temp
+func (s *Server) loop() {
+	for {
+		select {
+		case r := <-s.recover:
+			go s.doSyncronization(r.peer, r.start, r.end)
+		}
+	}
 }
 
 func (s *Server) LocalAddr() *net.TCPAddr {
@@ -93,7 +116,7 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 		cohorts = append(cohorts, peer)
 	}
 
-	phase, err := newPhase(cohorts, s.doRequest)
+	phase, err := newPhase(atomic.LoadUint64(&s.seq), cohorts, s.doRequest)
 	if err != nil {
 		return err
 	}
@@ -105,6 +128,8 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 	if err := phase.commit(s.db); err != nil {
 		return err
 	}
+
+	atomic.AddUint64(&s.seq, 1)
 
 	return nil
 }

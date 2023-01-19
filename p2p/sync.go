@@ -9,7 +9,7 @@ import (
 
 func (s *Server) doSyncronization(peer *peer, start uint64, end uint64) error {
 	for ; start <= end; start++ {
-		key := []byte(fmt.Sprintf("block-%d", start))
+		key := []byte(fmt.Sprintf("seq-%d", start))
 		if err := peer.writeMsg(&syncReqMsg{key}); err != nil {
 			return err
 		}

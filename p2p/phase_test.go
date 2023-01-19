@@ -12,7 +12,7 @@ func TestSoloPhase(t *testing.T) {
 	key := []byte{1, 2, 3}
 	value := []byte{4, 5, 6}
 
-	phase, err := newPhase(nil, doRequest)
+	phase, err := newPhase(0, nil, doRequest)
 	if err != nil {
 		t.Fatal(err)
 	}

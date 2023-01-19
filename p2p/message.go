@@ -31,6 +31,7 @@ type (
 	}
 
 	prepareMsg struct {
+		Seq   uint64
 		ID    [8]byte
 		Key   []byte
 		Value []byte
@@ -48,12 +49,10 @@ type (
 // handkshake
 type (
 	handshakeMsg struct {
-		// Sequence uint64
-		// LatestBN uint64
 	}
 
 	h_ackMsg struct {
-		LatestBN uint64
+		Sequence uint64
 	}
 )
 

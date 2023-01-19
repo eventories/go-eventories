@@ -2,7 +2,9 @@ package p2p
 
 import (
 	"errors"
+	"fmt"
 	"net"
+	"sync/atomic"
 	"time"
 )
 
@@ -34,12 +36,16 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 		return nil, errors.New("invalid message")
 	}
 
-	if backend.engine.BlockNumber() == ack.LatestBN {
+	currentSeq := atomic.LoadUint64(&backend.seq)
+
+	if currentSeq == ack.Sequence {
 		return peer, nil
 	}
 
-	if backend.engine.BlockNumber() < ack.LatestBN {
-		if err := backend.doSyncronization(peer, backend.engine.BlockNumber(), ack.LatestBN); err != nil {
+	fmt.Println(currentSeq, ack.Sequence)
+
+	if currentSeq < ack.Sequence {
+		if err := backend.doSyncronization(peer, currentSeq, ack.Sequence); err != nil {
 			peer.conn.Close()
 			return nil, err
 		}
@@ -49,5 +55,5 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 }
 
 func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {
-	peer.writeMsg(&h_ackMsg{LatestBN: s.engine.BlockNumber()})
+	peer.writeMsg(&h_ackMsg{Sequence: atomic.LoadUint64(&s.seq)})
 }
