@@ -52,7 +52,7 @@ type (
 	}
 
 	h_ackMsg struct {
-		Sequence uint64
+		Seq uint64
 	}
 )
 

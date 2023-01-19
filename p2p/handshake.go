@@ -38,14 +38,14 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 
 	currentSeq := atomic.LoadUint64(&backend.seq)
 
-	if currentSeq == ack.Sequence {
+	if currentSeq == ack.Seq {
 		return peer, nil
 	}
 
-	fmt.Println(currentSeq, ack.Sequence)
+	fmt.Println(currentSeq, ack.Seq)
 
-	if currentSeq < ack.Sequence {
-		if err := backend.doSyncronization(peer, currentSeq, ack.Sequence); err != nil {
+	if currentSeq < ack.Seq {
+		if err := backend.doSyncronization(peer, currentSeq, ack.Seq); err != nil {
 			peer.conn.Close()
 			return nil, err
 		}
@@ -57,5 +57,5 @@ func DialTCP(rawaddr string, backend *Server) (*peer, error) {
 }
 
 func (s *Server) handshakeHandle(peer *peer, h *handshakeMsg) {
-	peer.writeMsg(&h_ackMsg{Sequence: atomic.LoadUint64(&s.seq)})
+	peer.writeMsg(&h_ackMsg{atomic.LoadUint64(&s.seq)})
 }
