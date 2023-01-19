@@ -115,10 +115,9 @@ func (s *Server) abortHandle(peer *peer, abort *abortMsg) {
 	if err == nil {
 		// Request
 		s.doRequest(req, true)
-	} else {
-		// Data
-		s.db.Delete(s.local.key)
 	}
+
+	s.db.Delete(s.local.key)
 }
 
 // Request should also contain logic for revert that take that action.
