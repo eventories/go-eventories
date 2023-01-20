@@ -133,14 +133,15 @@ func (s *spectificDeploy) do(p *Purifier, eth *interaction.Interactor, txs []*ty
 			data := tx.Data()
 			methods := s.abi.Methods
 
-			satisfy := true
+			satisfied := true
 			for _, method := range methods {
 				if !bytes.Contains(data, method.ID) {
-					satisfy = false
+					satisfied = false
+					break
 				}
 			}
 
-			if satisfy {
+			if satisfied {
 				r = append(r, tx)
 			}
 		}
