@@ -19,28 +19,27 @@ type Purifier struct {
 	// txs maps the result of the requested filter to Kind.
 	txs map[Kind][]*types.Transaction
 
-	filters map[Kind]Filter
+	filters []Filter
+	// filters map[Kind]Filter
 }
 
 func New(filters ...Filter) *Purifier {
 	p := &Purifier{
 		logs:    make(map[Kind]map[common.Hash][]*types.Log),
 		txs:     make(map[Kind][]*types.Transaction),
-		filters: make(map[Kind]Filter, 0),
+		filters: make([]Filter, 0, len(defaultFilters)),
 	}
 
-	for _, df := range defaultFilters {
-		p.filters[df.Kind()] = df
-	}
+	p.filters = append(p.filters, defaultFilters...)
 
 	for _, filter := range filters {
-		// If it already exists, it will not be overwritten. 'defaultFilters'
+		// If it already exists, it will not be append. 'defaultFilters'
 		// needs to be run first, but overwriting it changes the order.
-		if _, ok := p.filters[filter.Kind()]; ok {
+		if p.exist(filter.Kind()) {
 			continue
 		}
 
-		p.filters[filter.Kind()] = filter
+		p.filters = append(p.filters, filter)
 	}
 
 	return p
@@ -49,8 +48,8 @@ func New(filters ...Filter) *Purifier {
 // Returns a list of Kinds of processed/upcoming filters.
 func (p *Purifier) Filters() []Kind {
 	kinds := make([]Kind, 0, len(p.filters))
-	for kind := range p.filters {
-		kinds = append(kinds, kind)
+	for _, filter := range p.filters {
+		kinds = append(kinds, filter.Kind())
 	}
 	return kinds
 }
@@ -72,6 +71,15 @@ func (p *Purifier) Logs() map[Kind]map[common.Hash][]*types.Log {
 
 func (p *Purifier) Txs() map[Kind][]*types.Transaction {
 	return p.txs
+}
+
+func (p *Purifier) exist(kind Kind) bool {
+	for _, filter := range p.filters {
+		if kind == filter.Kind() {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *Purifier) filtering(filter Filter, eth *interaction.Interactor, txs []*types.Transaction) error {
