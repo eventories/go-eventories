@@ -20,7 +20,6 @@ type Purifier struct {
 	txs map[Kind][]*types.Transaction
 
 	filters []Filter
-	// filters map[Kind]Filter
 }
 
 func New(filters ...Filter) *Purifier {
