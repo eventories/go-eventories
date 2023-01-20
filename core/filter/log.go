@@ -17,7 +17,7 @@ type address struct {
 	target common.Address
 }
 
-func (a *address) Kind() Kind { return AddressLogsFilter }
+func (a *address) Kind() Kind { return AddressLogFilter }
 
 func (a *address) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)
@@ -39,7 +39,7 @@ type event struct {
 	id common.Hash
 }
 
-func (e *event) Kind() Kind { return EventLogsFilter }
+func (e *event) Kind() Kind { return EventLogFilter }
 
 func (e *event) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)

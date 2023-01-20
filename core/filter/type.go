@@ -9,8 +9,8 @@ const (
 	SpectificDeployFilter
 
 	// Log
-	AddressLogsFilter
-	EventLogsFilter
+	AddressLogFilter
+	EventLogFilter
 )
 
 type Kind byte
@@ -32,11 +32,11 @@ func (k Kind) String() string {
 	case SpectificDeployFilter:
 		return "SpectificDeployFilter"
 
-	case AddressLogsFilter:
-		return "AddressLogsFilter"
+	case AddressLogFilter:
+		return "AddressLogFilter"
 
-	case EventLogsFilter:
-		return "EventLogsFilter"
+	case EventLogFilter:
+		return "EventLogFilter"
 
 	default:
 		panic("Unknown filter")

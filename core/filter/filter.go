@@ -21,17 +21,6 @@ type logFilter interface {
 	do(*Purifier, *interaction.Interactor, []*types.Log) error
 }
 
-/*
-	CoinTransferFilter = Kind(0) + iota
-	DeployFilter
-	SpectificDeployFilter
-	AllTransactionsFilter
-	AllLogsFilter
-
-	// Log
-	AddressLogsFilter
-	EventLogsFilter
-*/
 func NewAllTransactionsFilter() Filter {
 	return &allTransactions{}
 }
