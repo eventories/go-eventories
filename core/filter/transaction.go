@@ -84,13 +84,13 @@ func (d *deploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Trans
 }
 
 type spectificDeploy struct {
-	ABI *abi.ABI
+	abi *abi.ABI
 }
 
 func (s *spectificDeploy) Kind() Kind { return SpectificDeployFilter }
 
 func (s *spectificDeploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
-	if s.ABI == nil {
+	if s.abi == nil {
 		return errors.New("must be set ABI")
 	}
 
@@ -99,7 +99,7 @@ func (s *spectificDeploy) do(p *Purifier, eth *interaction.Interactor, txs []*ty
 	for _, tx := range txs {
 		if tx.To() == nil && tx.Data() != nil {
 			data := tx.Data()
-			methods := s.ABI.Methods
+			methods := s.abi.Methods
 
 			satisfy := true
 			for _, method := range methods {
