@@ -13,6 +13,8 @@ import (
 )
 
 var (
+	batchSize = 10
+
 	_ = transactionFilter(&allLogs{})
 	_ = transactionFilter(&allTransactions{})
 	_ = transactionFilter(&coinTransfer{})
@@ -25,13 +27,42 @@ type allLogs struct{}
 func (a *allLogs) Kind() Kind { return AllLogsType }
 
 func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
-	r := make(map[common.Hash][]*types.Log)
-	for _, tx := range txs {
-		logs, err := eth.GetTransactionLogs(context.Background(), tx.Hash())
-		if err != nil {
-			return err
+	ch := make(chan map[common.Hash][]*types.Log, (len(txs)/batchSize)+1)
+
+	for i := 0; i < len(txs); i += batchSize {
+		end := i + batchSize
+		if end >= len(txs) {
+			end = len(txs) - 1
 		}
-		r[tx.Hash()] = logs
+
+		go func(batch []*types.Transaction) {
+			temp := make(map[common.Hash][]*types.Log)
+
+			for _, tx := range txs {
+				logs, err := eth.GetTransactionLogs(context.Background(), tx.Hash())
+				if err != nil {
+					ch <- nil
+					return
+				}
+
+				if len(logs) != 0 {
+					temp[tx.Hash()] = logs
+				}
+			}
+			ch <- temp
+		}(txs[i:end])
+	}
+
+	r := make(map[common.Hash][]*types.Log)
+	for i := 0; i < cap(ch); i++ {
+		res := <-ch
+		if res == nil {
+			return errors.New("allLogs failure")
+		}
+
+		for k, v := range res {
+			r[k] = v
+		}
 	}
 
 	p.logs[a.Kind()] = r
