@@ -14,8 +14,16 @@ type Interactor struct {
 	client *ethclient.Client
 }
 
+func New(client *ethclient.Client) *Interactor {
+	return &Interactor{client}
+}
+
 func (i *Interactor) ChainID(ctx context.Context) (*big.Int, error) {
 	return i.client.ChainID(ctx)
+}
+
+func (i *Interactor) BlockByNumber(ctx context.Context, blockNumber uint64) (*types.Block, error) {
+	return i.client.BlockByNumber(ctx, big.NewInt(int64(blockNumber)))
 }
 
 func (i *Interactor) GetLatestBlockNumber(ctx context.Context) (uint64, error) {
