@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	batchSize = 10
+	batchSize = 20
 
 	_ = transactionFilter(&allLogs{})
 	_ = transactionFilter(&allTransactions{})
@@ -45,9 +45,11 @@ func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Tran
 					return
 				}
 
-				if len(logs) != 0 {
-					temp[tx.Hash()] = logs
-				}
+				// if len(logs) != 0 {
+				// 	temp[tx.Hash()] = logs
+				// }
+				// Includes 'nil'
+				temp[tx.Hash()] = logs
 			}
 			ch <- temp
 		}(txs[i:end])
