@@ -13,36 +13,41 @@ var defaultFilters = []Filter{&allLogs{}}
 
 // Block Purifier
 type Purifier struct {
+	// logs stores items by Kind. Items are mapped Logs to
+	// requested values ​​(e.g. address, topic).
 	logs map[Kind]map[common.Hash][]*types.Log
-	txs  map[Kind][]*types.Transaction
+
+	// txs maps the result of the requested filter to Kind.
+	txs map[Kind][]*types.Transaction
 
 	filters map[Kind]Filter
 }
 
-func New() *Purifier {
-	filters := make(map[Kind]Filter)
-
-	for _, df := range defaultFilters {
-		filters[df.Kind()] = df
-	}
-
-	return &Purifier{
+func New(filters ...Filter) *Purifier {
+	p := &Purifier{
 		logs:    make(map[Kind]map[common.Hash][]*types.Log),
 		txs:     make(map[Kind][]*types.Transaction),
-		filters: filters,
+		filters: make(map[Kind]Filter, 0),
 	}
-}
 
-func (p *Purifier) RegisterFilter(fs ...Filter) {
-	for _, f := range fs {
-		if _, ok := p.filters[f.Kind()]; ok {
+	for _, df := range defaultFilters {
+		p.filters[df.Kind()] = df
+	}
+
+	for _, filter := range filters {
+		// If it already exists, it will not be overwritten. 'defaultFilters'
+		// needs to be run first, but overwriting it changes the order.
+		if _, ok := p.filters[filter.Kind()]; ok {
 			continue
 		}
 
-		p.filters[f.Kind()] = f
+		p.filters[filter.Kind()] = filter
 	}
+
+	return p
 }
 
+// Returns a list of Kinds of processed/upcoming filters.
 func (p *Purifier) Filters() []Kind {
 	kinds := make([]Kind, 0, len(p.filters))
 	for kind := range p.filters {
@@ -54,7 +59,7 @@ func (p *Purifier) Filters() []Kind {
 func (p *Purifier) Filtering(eth *interaction.Interactor, txs []*types.Transaction) error {
 	// defaultFilters are performed first.
 	for _, filter := range p.filters {
-		if err := p.route(filter, eth, txs); err != nil {
+		if err := p.filtering(filter, eth, txs); err != nil {
 			return err
 		}
 	}
@@ -70,7 +75,7 @@ func (p *Purifier) Txs() map[Kind][]*types.Transaction {
 	return p.txs
 }
 
-func (p *Purifier) route(filter Filter, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (p *Purifier) filtering(filter Filter, eth *interaction.Interactor, txs []*types.Transaction) error {
 	var err error
 
 	switch f := filter.(type) {
