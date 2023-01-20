@@ -62,18 +62,12 @@ func (p *Purifier) Filtering(eth *interaction.Interactor, txs []*types.Transacti
 	return nil
 }
 
-func (p *Purifier) Log(kind Kind) map[common.Hash][]*types.Log {
-	if _, ok := p.filters[kind]; !ok {
-		return nil
-	}
-	return p.logs[kind]
+func (p *Purifier) Logs() map[Kind]map[common.Hash][]*types.Log {
+	return p.logs
 }
 
-func (p *Purifier) Tx(kind Kind) []*types.Transaction {
-	if _, ok := p.filters[kind]; !ok {
-		return nil
-	}
-	return p.txs[kind]
+func (p *Purifier) Txs() map[Kind][]*types.Transaction {
+	return p.txs
 }
 
 func (p *Purifier) route(filter Filter, eth *interaction.Interactor, txs []*types.Transaction) error {
