@@ -8,7 +8,7 @@ import (
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
-var defaultRun = []Filter{&allLogs{}}
+var defaultFilters = []Filter{&allLogs{}}
 
 // Block Purifier
 type Purifier struct {
@@ -21,7 +21,7 @@ type Purifier struct {
 func New() *Purifier {
 	filters := make(map[Kind]Filter)
 
-	for _, df := range defaultRun {
+	for _, df := range defaultFilters {
 		filters[df.Kind()] = df
 	}
 
@@ -34,6 +34,10 @@ func New() *Purifier {
 
 func (p *Purifier) RegisterFilter(fs ...Filter) {
 	for _, f := range fs {
+		if _, ok := p.filters[f.Kind()]; ok {
+			continue
+		}
+
 		p.filters[f.Kind()] = f
 	}
 }
@@ -47,13 +51,7 @@ func (p *Purifier) Filters() []Kind {
 }
 
 func (p *Purifier) Filtering(eth *interaction.Interactor, txs []*types.Transaction) error {
-
-	for _, filter := range defaultRun {
-		if err := p.route(filter, eth, txs); err != nil {
-			return err
-		}
-	}
-
+	// defaultFilters are performed first.
 	for _, filter := range p.filters {
 		if err := p.route(filter, eth, txs); err != nil {
 			return err
