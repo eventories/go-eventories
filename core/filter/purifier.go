@@ -13,7 +13,7 @@ var defaultFilters = []Filter{&allLogs{}}
 
 type Purifier struct {
 	// logs stores items by Kind. Items are mapped Logs to
-	// requested values ​​(e.g. address, topic).
+	// requested values (e.g. address, topic).
 	logs map[Kind]map[common.Hash][]*types.Log
 
 	// txs maps the result of the requested filter to Kind.
