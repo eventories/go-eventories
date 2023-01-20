@@ -3,7 +3,6 @@ package filter
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -248,7 +247,6 @@ func TestSatisfyABI(t *testing.T) {
 
 	success := true
 	for _, method := range abi.Methods {
-		fmt.Println(bytes.Contains(code, method.ID))
 		if !bytes.Contains(code, method.ID) {
 			success = false
 		}

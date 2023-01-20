@@ -8,50 +8,51 @@ import (
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
-type (
-	Address struct {
-		Target common.Address
-	}
-
-	Event struct {
-		ID common.Hash
-	}
+var (
+	_ = logFilter(&address{})
+	_ = logFilter(&event{})
 )
 
-//
-func (a *Address) Kind() Kind { return AddressLogsFilter }
+type address struct {
+	target common.Address
+}
 
-func (a *Address) Do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
+func (a *address) Kind() Kind { return AddressLogsFilter }
+
+func (a *address) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)
 	for _, log := range logs {
-		if bytes.Equal(log.Address.Bytes(), a.Target.Bytes()) {
+		if bytes.Equal(log.Address.Bytes(), a.target.Bytes()) {
 			rlogs = append(rlogs, log)
 		}
 	}
 
 	r := make(map[common.Hash][]*types.Log)
-	r[a.Target.Hash()] = rlogs
+	r[a.target.Hash()] = rlogs
 
 	p.logs[a.Kind()] = r
 
 	return nil
 }
 
-//
-func (e *Event) Kind() Kind { return EventLogsFilter }
+type event struct {
+	id common.Hash
+}
 
-func (e *Event) Do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
+func (e *event) Kind() Kind { return EventLogsFilter }
+
+func (e *event) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)
 	for _, log := range logs {
 		if len(log.Topics) != 0 {
-			if bytes.Equal(log.Topics[0].Bytes(), e.ID[:]) {
+			if bytes.Equal(log.Topics[0].Bytes(), e.id[:]) {
 				rlogs = append(rlogs, log)
 			}
 		}
 	}
 
 	r := make(map[common.Hash][]*types.Log)
-	r[e.ID] = rlogs
+	r[e.id] = rlogs
 
 	p.logs[e.Kind()] = r
 

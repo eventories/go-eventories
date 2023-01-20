@@ -11,24 +11,19 @@ import (
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
-type (
-	AllLogs struct{}
-
-	AllTransactions struct{}
-
-	CoinTransfer struct{}
-
-	Deploy struct{}
-
-	SpectificDeploy struct {
-		ABI *abi.ABI
-	}
+var (
+	_ = transactionFilter(&allLogs{})
+	_ = transactionFilter(&allTransactions{})
+	_ = transactionFilter(&coinTransfer{})
+	_ = transactionFilter(&deploy{})
+	_ = transactionFilter(&spectificDeploy{})
 )
 
-//
-func (a *AllLogs) Kind() Kind { return AllLogsFilter }
+type allLogs struct{}
 
-func (a *AllLogs) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (a *allLogs) Kind() Kind { return AllLogsFilter }
+
+func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make(map[common.Hash][]*types.Log)
 	for _, tx := range txs {
 		logs, err := eth.GetTransactionLogs(context.Background(), tx.Hash())
@@ -43,18 +38,20 @@ func (a *AllLogs) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Tran
 	return nil
 }
 
-//
-func (a *AllTransactions) Kind() Kind { return AllTransactionsFilter }
+type allTransactions struct{}
 
-func (a *AllTransactions) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (a *allTransactions) Kind() Kind { return AllTransactionsFilter }
+
+func (a *allTransactions) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	p.txs[a.Kind()] = txs
 	return nil
 }
 
-//
-func (c *CoinTransfer) Kind() Kind { return CoinTransferFilter }
+type coinTransfer struct{}
 
-func (c *CoinTransfer) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (c *coinTransfer) Kind() Kind { return CoinTransferFilter }
+
+func (c *coinTransfer) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make([]*types.Transaction, 0)
 
 	for _, tx := range txs {
@@ -68,10 +65,11 @@ func (c *CoinTransfer) Do(p *Purifier, eth *interaction.Interactor, txs []*types
 	return nil
 }
 
-//
-func (d *Deploy) Kind() Kind { return DeployFilter }
+type deploy struct{}
 
-func (d *Deploy) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (d *deploy) Kind() Kind { return DeployFilter }
+
+func (d *deploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make([]*types.Transaction, 0)
 
 	for _, tx := range txs {
@@ -85,10 +83,13 @@ func (d *Deploy) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Trans
 	return nil
 }
 
-//
-func (s *SpectificDeploy) Kind() Kind { return SpectificDeployFilter }
+type spectificDeploy struct {
+	ABI *abi.ABI
+}
 
-func (s *SpectificDeploy) Do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
+func (s *spectificDeploy) Kind() Kind { return SpectificDeployFilter }
+
+func (s *spectificDeploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	if s.ABI == nil {
 		return errors.New("must be set ABI")
 	}

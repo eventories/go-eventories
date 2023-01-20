@@ -1,22 +1,28 @@
 package filter
 
-type Kind byte
-
 const (
 	// Transaction
-	CoinTransferFilter = Kind(0) + iota
+	AllTransactionsFilter = Kind(0) + iota
+	AllLogsFilter
+	CoinTransferFilter
 	DeployFilter
 	SpectificDeployFilter
-	AllTransactionsFilter
-	AllLogsFilter
 
 	// Log
 	AddressLogsFilter
 	EventLogsFilter
 )
 
+type Kind byte
+
 func (k Kind) String() string {
 	switch k {
+	case AllTransactionsFilter:
+		return "AllTransactionsFilter"
+
+	case AllLogsFilter:
+		return "AllLogsFilter"
+
 	case CoinTransferFilter:
 		return "CoinTransferFilter"
 
@@ -25,12 +31,6 @@ func (k Kind) String() string {
 
 	case SpectificDeployFilter:
 		return "SpectificDeployFilter"
-
-	case AllTransactionsFilter:
-		return "AllTransactionsFilter"
-
-	case AllLogsFilter:
-		return "AllLogsFilter"
 
 	case AddressLogsFilter:
 		return "AddressLogsFilter"
