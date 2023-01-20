@@ -22,7 +22,7 @@ func (a *address) Kind() Kind { return AddressLogFilter }
 func (a *address) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)
 	for _, log := range logs {
-		if bytes.Equal(log.Address.Bytes(), a.target.Bytes()) {
+		if bytes.Equal(a.target.Bytes(), log.Address.Bytes()) {
 			rlogs = append(rlogs, log)
 		}
 	}
@@ -45,7 +45,7 @@ func (e *event) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) 
 	rlogs := make([]*types.Log, 0)
 	for _, log := range logs {
 		if len(log.Topics) != 0 {
-			if bytes.Equal(log.Topics[0].Bytes(), e.id[:]) {
+			if bytes.Equal(e.id[:], log.Topics[0].Bytes()) {
 				rlogs = append(rlogs, log)
 			}
 		}
