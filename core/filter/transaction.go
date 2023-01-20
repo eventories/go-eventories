@@ -48,7 +48,8 @@ func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Tran
 				// if len(logs) != 0 {
 				// 	temp[tx.Hash()] = logs
 				// }
-				// Includes 'nil'
+				//
+				// The current implementation includes 'nil'.
 				temp[tx.Hash()] = logs
 			}
 			ch <- temp
