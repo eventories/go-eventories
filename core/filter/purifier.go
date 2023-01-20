@@ -9,7 +9,7 @@ import (
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
-var defaultFilters = []Filter{&allLogs{}}
+var defaultFilters = []Filter{}
 
 type Purifier struct {
 	// logs stores items by Kind. Items are mapped Logs to
@@ -34,7 +34,7 @@ func New(filters ...Filter) *Purifier {
 	for _, filter := range filters {
 		// If it already exists, it will not be append. 'defaultFilters'
 		// needs to be run first, but overwriting it changes the order.
-		if p.exist(filter.Kind()) {
+		if filter == nil || p.exist(filter.Kind()) {
 			continue
 		}
 
