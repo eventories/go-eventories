@@ -53,7 +53,7 @@ func (p *Purifier) Filters() []Kind {
 	return kinds
 }
 
-func (p *Purifier) Filtering(eth *interaction.Interactor, txs []*types.Transaction) error {
+func (p *Purifier) Run(eth *interaction.Interactor, txs []*types.Transaction) error {
 	// defaultFilters are performed first.
 	for _, filter := range p.filters {
 		if err := p.filtering(filter, eth, txs); err != nil {
