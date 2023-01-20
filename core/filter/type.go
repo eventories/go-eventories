@@ -2,43 +2,43 @@ package filter
 
 const (
 	// Transaction
-	AllTransactionsFilter = Kind(0) + iota
-	AllLogsFilter
-	CoinTransferFilter
-	DeployFilter
-	SpectificDeployFilter
+	AllTransactionsType = Kind(0) + iota
+	AllLogsType
+	CoinTransferType
+	DeployType
+	SpectificDeployType
 
 	// Log
-	AddressLogFilter
-	EventLogFilter
+	AddressLogType
+	EventLogType
 )
 
 type Kind byte
 
 func (k Kind) String() string {
 	switch k {
-	case AllTransactionsFilter:
-		return "AllTransactionsFilter"
+	case AllTransactionsType:
+		return "AllTransactionsType"
 
-	case AllLogsFilter:
-		return "AllLogsFilter"
+	case AllLogsType:
+		return "AllLogsType"
 
-	case CoinTransferFilter:
-		return "CoinTransferFilter"
+	case CoinTransferType:
+		return "CoinTransferType"
 
-	case DeployFilter:
-		return "DeployFilter"
+	case DeployType:
+		return "DeployType"
 
-	case SpectificDeployFilter:
-		return "SpectificDeployFilter"
+	case SpectificDeployType:
+		return "SpectificDeployType"
 
-	case AddressLogFilter:
-		return "AddressLogFilter"
+	case AddressLogType:
+		return "AddressLogType"
 
-	case EventLogFilter:
-		return "EventLogFilter"
+	case EventLogType:
+		return "EventLogType"
 
 	default:
-		panic("Unknown filter")
+		panic("Unknown filter type")
 	}
 }

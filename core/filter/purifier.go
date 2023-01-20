@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
@@ -85,7 +86,11 @@ func (p *Purifier) route(filter Filter, eth *interaction.Interactor, txs []*type
 	case logFilter:
 		r := make([]*types.Log, 0)
 
-		logs := p.logs[AllLogsFilter]
+		logs := p.logs[AllLogsType]
+		if logs == nil {
+			return errors.New("transaction has no logs, but log filter requested")
+		}
+
 		for _, log := range logs {
 			r = append(r, log...)
 		}

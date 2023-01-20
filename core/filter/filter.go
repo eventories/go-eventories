@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
@@ -21,30 +22,30 @@ type logFilter interface {
 	do(*Purifier, *interaction.Interactor, []*types.Log) error
 }
 
-func NewAllTransactionsFilter() Filter {
+func AllTransactionsFilter() Filter {
 	return &allTransactions{}
 }
 
-func NewAllLogsFilter() Filter {
+func AllLogsFilter() Filter {
 	return &allLogs{}
 }
 
-func NewCoinTransferFilter() Filter {
+func CoinTransferFilter() Filter {
 	return &coinTransfer{}
 }
 
-func NewDeployFilter() Filter {
+func DeployFilter() Filter {
 	return &deploy{}
 }
 
-func NewSpectificDeployFilter(abi *abi.ABI) Filter {
+func SpectificDeployFilter(abi *abi.ABI) Filter {
 	return &spectificDeploy{abi}
 }
 
-func NewAddressLogFilter(target common.Address) Filter {
+func AddressLogFilter(target common.Address) Filter {
 	return &address{target}
 }
 
-func NewEventLogFilter(eventID common.Hash) Filter {
+func EventLogFilter(eventID common.Hash) Filter {
 	return &event{eventID}
 }

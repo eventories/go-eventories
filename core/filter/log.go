@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
@@ -17,7 +18,7 @@ type address struct {
 	target common.Address
 }
 
-func (a *address) Kind() Kind { return AddressLogFilter }
+func (a *address) Kind() Kind { return AddressLogType }
 
 func (a *address) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)
@@ -39,7 +40,7 @@ type event struct {
 	id common.Hash
 }
 
-func (e *event) Kind() Kind { return EventLogFilter }
+func (e *event) Kind() Kind { return EventLogType }
 
 func (e *event) do(p *Purifier, eth *interaction.Interactor, logs []*types.Log) error {
 	rlogs := make([]*types.Log, 0)

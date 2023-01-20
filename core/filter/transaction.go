@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/eventories/go-eventories/core/interaction"
 )
 
@@ -21,7 +22,7 @@ var (
 
 type allLogs struct{}
 
-func (a *allLogs) Kind() Kind { return AllLogsFilter }
+func (a *allLogs) Kind() Kind { return AllLogsType }
 
 func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make(map[common.Hash][]*types.Log)
@@ -40,7 +41,7 @@ func (a *allLogs) do(p *Purifier, eth *interaction.Interactor, txs []*types.Tran
 
 type allTransactions struct{}
 
-func (a *allTransactions) Kind() Kind { return AllTransactionsFilter }
+func (a *allTransactions) Kind() Kind { return AllTransactionsType }
 
 func (a *allTransactions) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	p.txs[a.Kind()] = txs
@@ -49,7 +50,7 @@ func (a *allTransactions) do(p *Purifier, eth *interaction.Interactor, txs []*ty
 
 type coinTransfer struct{}
 
-func (c *coinTransfer) Kind() Kind { return CoinTransferFilter }
+func (c *coinTransfer) Kind() Kind { return CoinTransferType }
 
 func (c *coinTransfer) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make([]*types.Transaction, 0)
@@ -67,7 +68,7 @@ func (c *coinTransfer) do(p *Purifier, eth *interaction.Interactor, txs []*types
 
 type deploy struct{}
 
-func (d *deploy) Kind() Kind { return DeployFilter }
+func (d *deploy) Kind() Kind { return DeployType }
 
 func (d *deploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	r := make([]*types.Transaction, 0)
@@ -87,7 +88,7 @@ type spectificDeploy struct {
 	abi *abi.ABI
 }
 
-func (s *spectificDeploy) Kind() Kind { return SpectificDeployFilter }
+func (s *spectificDeploy) Kind() Kind { return SpectificDeployType }
 
 func (s *spectificDeploy) do(p *Purifier, eth *interaction.Interactor, txs []*types.Transaction) error {
 	if s.abi == nil {
