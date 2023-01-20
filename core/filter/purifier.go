@@ -11,7 +11,6 @@ import (
 
 var defaultFilters = []Filter{&allLogs{}}
 
-// Block Purifier
 type Purifier struct {
 	// logs stores items by Kind. Items are mapped Logs to
 	// requested values ​​(e.g. address, topic).
