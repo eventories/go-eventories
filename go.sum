@@ -18,6 +18,8 @@ github.com/ethereum/go-ethereum v1.10.26 h1:i/7d9RBBwiXCEuyduBQzJw/mKmnvzsN14jqB
 github.com/ethereum/go-ethereum v1.10.26/go.mod h1:EYFyF19u3ezGLD4RqOkLq+ZCXzYbLoNDdZlMt7kyKFg=
 github.com/eventories/election v0.0.0-20230104092247-e7558ddd31af h1:DbiXlfvdBqFMFTrVra9NjtP883oFeNmbhB23keCXDQc=
 github.com/eventories/election v0.0.0-20230104092247-e7558ddd31af/go.mod h1:oaHrn9uI7p3jENrr0fkHQom3Ebclv0zY9kClx2NXaLQ=
+github.com/eventories/election v0.0.0-20230119042702-ad8e53af75d0 h1:hfAqJvimqh0+n/iTsVZCkeRPe28BmuxiuMFfkfxQZ6M=
+github.com/eventories/election v0.0.0-20230119042702-ad8e53af75d0/go.mod h1:oaHrn9uI7p3jENrr0fkHQom3Ebclv0zY9kClx2NXaLQ=
 github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 h1:FtmdgXiUlNeRsoNMFlKLDt+S+6hbjVMEW6RGQ7aUf7c=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff h1:tY80oXqGNY4FhTFhk+o9oFHGINQ/+vhlm8HFzi6znCI=
 github.com/go-ole/go-ole v1.2.1 h1:2lOsA72HgjxAuMlKpFiCbHTvu44PIVkZ5hqm3RSdI/E=

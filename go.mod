@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.10.26
-	github.com/eventories/election v0.0.0-20230104092247-e7558ddd31af
+	github.com/eventories/election v0.0.0-20230119042702-ad8e53af75d0
 )
 
 require (
