@@ -15,7 +15,7 @@ type Fetcher struct {
 func NewFetcher(interact *interaction.Interactor, db database.Database) (*Fetcher, error) {
 	return &Fetcher{
 		eth: interact,
-		cp:  NewCheckpoint("blockNumber"),
+		cp:  NewCheckpoint(DefaultBasePath, "blockNumber"),
 	}, nil
 }
 

@@ -34,7 +34,7 @@ type Server struct {
 
 func NewServer(listener *net.TCPListener, election *election.Election, db database.Database) *Server {
 	s := &Server{
-		seq:      core.NewCheckpoint("seq"),
+		seq:      core.NewCheckpoint(core.DefaultBasePath, "sequence"),
 		listener: listener,
 		election: election,
 		db:       db,
@@ -127,9 +127,7 @@ func (s *Server) Commit(ctx context.Context, key []byte, value []byte) error {
 		return err
 	}
 
-	s.seq.Increase()
-
-	return nil
+	return s.seq.Increase()
 }
 
 // 2-phase-commit
