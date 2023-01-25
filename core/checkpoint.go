@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	extension = ".checkpoint"
+	defaultBasePath = "checkpoint"
+	extension       = ".checkpoint"
 )
 
 type Checkpoint struct {
@@ -21,8 +22,8 @@ type Checkpoint struct {
 	n    uint64
 }
 
-func NewCheckpoint(basePath string, kind string) *Checkpoint {
-	path, err := defaultPath(basePath, runtime.GOOS)
+func NewCheckpoint(kind string) *Checkpoint {
+	path, err := defaultPath(defaultBasePath, runtime.GOOS)
 	if err != nil {
 		panic(err)
 	}
