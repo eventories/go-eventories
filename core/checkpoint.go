@@ -48,10 +48,7 @@ func (c *Checkpoint) Checkpoint() uint64 {
 }
 
 func (c *Checkpoint) SetCheckpoint(n uint64) error {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, n)
-
-	if err := c.write(b); err != nil {
+	if err := c.write(uint64ToBytes(n)); err != nil {
 		return err
 	}
 
@@ -60,10 +57,7 @@ func (c *Checkpoint) SetCheckpoint(n uint64) error {
 }
 
 func (c *Checkpoint) Increase() error {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, atomic.LoadUint64(&c.n)+1)
-
-	if err := c.write(b); err != nil {
+	if err := c.write(uint64ToBytes(atomic.LoadUint64(&c.n) + 1)); err != nil {
 		return err
 	}
 
@@ -74,10 +68,7 @@ func (c *Checkpoint) Increase() error {
 func (c *Checkpoint) Decrease() error {
 	n := atomic.LoadUint64(&c.n)
 
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, n-1)
-
-	if err := c.write(b); err != nil {
+	if err := c.write(uint64ToBytes(n - 1)); err != nil {
 		return err
 	}
 
@@ -87,6 +78,12 @@ func (c *Checkpoint) Decrease() error {
 
 func (c *Checkpoint) write(b []byte) error {
 	return ioutil.WriteFile(filepath.Join(c.path, filepath.Base(c.kind+extension)), b, fs.FileMode(0644))
+}
+
+func uint64ToBytes(n uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, n)
+	return b
 }
 
 // There is little possibility of adding a separate logic for each
